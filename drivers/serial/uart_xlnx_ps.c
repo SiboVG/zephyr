@@ -676,6 +676,14 @@ static int uart_xlnx_ps_configure(const struct device *dev, const struct uart_co
 		return -ENOTSUP;
 	}
 
+	/*
+	 * Wait until the TX FIFO has drained and the transmitter is idle, so
+	 * that disabling the controller does not cut off a character mid-frame.
+	 */
+	while ((sys_read32(reg_base + XUARTPS_SR_OFFSET) &
+		(XUARTPS_SR_TXEMPTY | XUARTPS_SR_TACTIVE)) != XUARTPS_SR_TXEMPTY) {
+	}
+
 	/* Disable the controller before modifying any config registers */
 	xlnx_ps_disable_uart(reg_base);
 
